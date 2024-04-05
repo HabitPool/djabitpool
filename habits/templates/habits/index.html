@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Bulma Page</title>
+    <!-- Link to Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
+    <!-- Optional Font Awesome for icons -->
+    <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script>
+    <style>
+        /* Custom Styles */
+        body {
+            padding-top: 50px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="#">
+            <strong>Bulma Page</strong>
+        </a>
+        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false"
+           data-target="navbarBasicExample">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+    <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+            <a class="navbar-item" href="#">
+                Home
+            </a>
+            <a class="navbar-item" href="#">
+                About
+            </a>
+            <a class="navbar-item" href="#">
+                Contact
+            </a>
+        </div>
+    </div>
+</nav>
+<section class="section">
+    <div class="container">
+        {% if request.user.is_authenticated %}
+            <p>{{ request.user.username }}</p>
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'signup' %}">Signup</a>
+        {% endif %}
+        <h1 class="title">Welcome to Our Page</h1>
+        <p class="subtitle">This is a simple webpage created using Bulma CSS framework.</p>
+        <div class="content">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget ultricies velit, at condimentum
+                urna. Ut ac velit id orci scelerisque malesuada in nec eros. Vivamus nec sapien ac risus congue
+                ullamcorper.</p>
+        </div>
+    </div>
+</section>
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p>
+            <strong>Bulma Page</strong> by Your Name.
+        </p>
+    </div>
+</footer>
+</body>
+</html>
