@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translate the Word</title>
+    <!-- Link to Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+</head>
+
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Translate the word:</h1>
+            <p>{{ word.english_word }}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="field">
+                    {% for option in options %}
+                    <div class="control">
+                        <label class="radio">
+                            <input type="radio" id="{{ option.id }}" name="translation" value="{{ option.ukrainian_translation }}">
+                            {{ option.ukrainian_translation }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="field is-grouped">
+                    <div class="control">
+                        <input type="submit" class="button is-link" value="Submit">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+</body>
+</html>
