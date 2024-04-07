@@ -26,7 +26,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 admin.site.register(UserProfile, UserProfileAdmin)
 
 class ProgressLogAdmin(admin.ModelAdmin):
-    list_display = ('username', 'date')
+    list_display = ('username', 'date', 'completed', 'billed')
     def username(self, obj):
         return obj.user.username  # Display the username of the associated user
     def get_form(self, request, obj=None, **kwargs):
