@@ -1,0 +1,12 @@
+from wrapper_solana import get_wallet_address_from_private_key, is_valid_wallet_address, is_valid_private_key
+from wrapper_solana import get_sol_balance, transfer_coins
+#('HS1WR95BrHq6CkM2gP299rwngcGNo5aLTAjgeGypyGPp', 'ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261')
+
+wallet_private_key = 'ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261'
+address = (get_wallet_address_from_private_key(wallet_private_key)) # HS1WR95BrHq6CkM2gP299rwngcGNo5aLTAjgeGypyGPp
+
+helper = 'C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt' #helper C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt
+
+print(get_sol_balance(address), get_sol_balance('C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt'))
+transfer_coins('ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261', 'C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt',0.0000001)
+print(get_sol_balance(address), get_sol_balance('C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt'))

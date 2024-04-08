@@ -10,17 +10,18 @@ class Challenge(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    address = models.TextField(blank=True)
     date_of_start = models.DateField(null=True, blank=True)
     challenge_url = models.TextField(blank=True)
     helper_address = models.TextField(blank=True)
     contact = models.TextField(blank=True)
+    steps_to_complete = models.IntegerField(blank=True, null=True)
 
 class ProgressLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateField(null=True, blank=False)
-    completed = models.BooleanField(null=True, blank=True)
-    billed = models.BooleanField (null=True, blank=True)
+    date = models.DateField()
+    current = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    billed = models.BooleanField (default=False)
 
     def __str__(self):
         return self.user.username+str(self.date)

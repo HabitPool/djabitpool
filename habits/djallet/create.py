@@ -1,6 +1,7 @@
 from wrapper_solana import create_solana_wallet
 
-print(create_solana_wallet())
+a = (create_solana_wallet())
+print(a)
 
 #keypair = Keypair(); print(keypair); print(keypair.pubkey(), keypair.secret())
 # vGXRbf75NN3JnC6FaDZDGRjrAXU45RuZk5d5R77qjbHynTwE3i6VdGFNqCFgPquwWKbFcnABVKFofQdzZZADvdZ

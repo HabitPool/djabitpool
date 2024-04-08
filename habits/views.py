@@ -7,57 +7,29 @@ from .forms import SignupForm, LoginForm
 from .models import Sololingo, ProgressLog
 import random
 from datetime import date, timedelta
-
-from solana.account import Account
-from solana.rpc.api import Client
-from solana.transaction import Transaction
-from solana.system_program import transfer
+from .pylana import transfer_coins
 
 solana_system_wallet = 'DpFELfY8kYLdxADx8X2D2jMANxFCH812XEjtrSteHg1C'
 def send_sols(quanity: float):
     # Define sender and receiver wallet addresses
-    sender_address = "<SENDER_ADDRESS>"
-    receiver_address = "<RECEIVER_ADDRESS>"
+    sender_private_address = "ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261"
+    helper_public_address = "C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt"
 
-    # Define the sender's private key (assuming it's a string)
-    sender_private_key = "<SENDER_PRIVATE_KEY>"
-
-    # Connect to Solana Devnet RPC endpoint
-    rpc_endpoint = "https://api.devnet.solana.com"
-    client = Client(rpc_endpoint)
-
-    # Load sender's account
-    sender_account = Account(sender_private_key)
-
-    # Fetch recent blockhash
-    blockhash = client.get_recent_blockhash()
-
-    # Create transaction
-    transaction = Transaction().add(
-        transfer(
-            sender_address,
-            receiver_address,
-            1000000000,  # Amount to send (in lamports, 1 SOL = 1e9 lamports)
-        )
-    )
-
-    # Sign transaction
-    signed_transaction = transaction.sign([sender_account])
-
-    # Send transaction
-    tx_hash = client.send_transaction(signed_transaction)
-    print("Transaction sent with hash:", tx_hash)
 
 def check_unbilled(user):
 
     helper_first_payment = 0.01
     current_date = date.today()
     yesterday = current_date - timedelta(days=1)
+    preyesterday = current_date - timedelta(days=2)
     print(current_date, yesterday)
     #check uncompleted yesterday
-    progress = ProgressLog.objects.filter(user_id=user.id).filter(date=yesterday).exclude(billed=True).exclude(completed=True)
-    if len(progress)==1:
-        print(f'lets motivate {user.username}-helper is {user.userprofile.address}')
+    current_user = ProgressLog.objects.filter(user_id=user.id)
+    if current_user.filter(date=yesterday).filter(completed=True).filter(billed=False).exists() and current_user.filter(date=preyesterday).filter(completed=False).filter(billed=True).exists():
+        pass #it seems heler was effective and we send salary
+    if current_user.filter(date=yesterday).filter(completed=False).filter(billed=False):
+        pass
+        print(f'lets motivate {user.username}-helper is {user.userprofile.helper_address}')
 
 
     progress = ProgressLog.objects.filter(user_id=user.id).exclude(billed=True).exclude(completed=True)

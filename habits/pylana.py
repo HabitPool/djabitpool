@@ -7,16 +7,31 @@ from typing import Tuple, Dict, List, Optional, Any
 import base58
 import httpx
 from solana.rpc.api import Keypair
+from solana.rpc.api import Client
 from solana.rpc.async_api import AsyncClient
 from solana.transaction import Transaction
 from solders.pubkey import Pubkey
 from solders.system_program import transfer, TransferParams
 from solders.transaction_status import TransactionConfirmationStatus
 
-from config import (SOLANA_NODE_URL, LAMPORT_TO_SOL_RATIO, PRIVATE_KEY_HEX_LENGTH,
-                                PRIVATE_KEY_BINARY_LENGTH, TRANSACTION_HISTORY_CACHE_DURATION)
+# Константа для определения URL-адреса узла Solana в тестовой сети Devnet
+#SOLANA_NODE_URL = "https://api.testnet.solana.com"
+SOLANA_NODE_URL = "https://api.devnet.solana.com"
+
+# Константа для определения соотношения между лампортами и SOL. 1 SOL = 10^9 лампортов.
+LAMPORT_TO_SOL_RATIO = 10 ** 9
+
+# Константа для определения длины шестнадцатеричного представления приватного ключа в символах.
+PRIVATE_KEY_HEX_LENGTH = 64
+
+# Константа для определения длины двоичного представления приватного ключа в байтах.
+PRIVATE_KEY_BINARY_LENGTH = 32
+
+# Константа, определяющая длительность существования кеша для истории транзакций (в секундах).
+# Здесь установлено значение 3600 секунд (1 час).
+TRANSACTION_HISTORY_CACHE_DURATION = 3600
 # Создание клиента для подключения к тестовой сети
-http_client = AsyncClient(SOLANA_NODE_URL)
+client = Client(SOLANA_NODE_URL)
 
 # Создаем словарь для кэширования результатов запросов истории транзакций
 transaction_history_cache: Dict[str, Tuple[List, float]] = {}
@@ -151,7 +166,7 @@ def is_valid_amount(amount: str | int | float) -> bool:
         return False
 
 
-async def get_sol_balance(wallet_addresses, client):
+def get_sol_balance(wallet_addresses:str):
     """
     Asynchronously retrieves the SOL balance for the specified wallet addresses.
 
@@ -165,16 +180,16 @@ async def get_sol_balance(wallet_addresses, client):
     try:
         # Если передан одиночный адрес кошелька
         if isinstance(wallet_addresses, str):
-            balance = (await client.get_balance(Pubkey.from_string(wallet_addresses))).value
+            balance = (client.get_balance(Pubkey.from_string(wallet_addresses))).value
             # Преобразование лампортов в SOL
             sol_balance = balance / LAMPORT_TO_SOL_RATIO
-            logger.debug(f"wallet_address: {wallet_addresses}, balance: {balance}, sol_balance: {sol_balance}")
+            #logger.debug(f"wallet_address: {wallet_addresses}, balance: {balance}, sol_balance: {sol_balance}")
             return sol_balance
         # Если передан список адресов кошельков
         elif isinstance(wallet_addresses, list):
             sol_balances = []
             for address in wallet_addresses:
-                balance = (await client.get_balance(Pubkey.from_string(address))).value
+                balance = (client.get_balance(Pubkey.from_string(address))).value
                 # Преобразование лампортов в SOL
                 sol_balance = balance / LAMPORT_TO_SOL_RATIO
                 sol_balances.append(sol_balance)
@@ -183,21 +198,19 @@ async def get_sol_balance(wallet_addresses, client):
             raise ValueError("Invalid type for wallet_addresses. Expected str or list[str].")
     except Exception as error:
         detailed_error_traceback = traceback.format_exc()
-        logger.error(f"Failed to get Solana balance: {error}\n{detailed_error_traceback}")
+        #logger.error(f"Failed to get Solana balance: {error}\n{detailed_error_traceback}")
         raise Exception(f"Failed to get Solana balance: {error}\n{detailed_error_traceback}")
 
 
-async def transfer_token(sender_address: str, sender_private_key: str, recipient_address: str, amount: float,
-                         client: AsyncClient) -> bool:
+def transfer_coins(sender_private_key: str, recipient_address: str, amount: float) -> bool:
     """
-        Asynchronous function to transfer tokens between wallets.
+        function to transfer coins between wallets.
 
         Args:
             sender_address (str): Sender's address.
             sender_private_key (str): Sender's private key.
             recipient_address (str): Recipient's address.
             amount (float): Amount of tokens to transfer.
-            client (AsyncClient): Asynchronous client for sending the transaction.
 
         Raises:
             ValueError: If any of the provided addresses is invalid or the private key is invalid.
@@ -206,6 +219,7 @@ async def transfer_token(sender_address: str, sender_private_key: str, recipient
             bool: True if the transfer is successful, False otherwise.
     """
     # Проверяем, является ли адрес отправителя действительным
+    sender_address = get_wallet_address_from_private_key(private_key=sender_private_key)
     if not is_valid_wallet_address(sender_address):
         raise ValueError("Invalid sender address")
 
@@ -223,7 +237,7 @@ async def transfer_token(sender_address: str, sender_private_key: str, recipient
     # Создаем пару ключей отправителя из приватного ключа
     sender_keypair = Keypair.from_seed(bytes.fromhex(sender_private_key))
 
-    # Создаем транзакцию для перевода токенов
+    # Создаем транзакцию для перевода монет
     txn = Transaction().add(
         transfer(
             TransferParams(
@@ -235,15 +249,15 @@ async def transfer_token(sender_address: str, sender_private_key: str, recipient
         )
     )
     # Отправляем транзакцию клиенту
-    send_transaction_response = await client.send_transaction(txn, sender_keypair)
+    send_transaction_response = client.send_transaction(txn, sender_keypair)
     # Подтверждаем транзакцию
-    confirm_transaction_response = await client.confirm_transaction(send_transaction_response.value)
+    confirm_transaction_response =  client.confirm_transaction(send_transaction_response.value)
 
     if hasattr(confirm_transaction_response, 'value') and confirm_transaction_response.value[0]:
         if hasattr(confirm_transaction_response.value[0], 'confirmation_status'):
             confirmation_status = confirm_transaction_response.value[0].confirmation_status
             if confirmation_status:
-                logger.debug(f"Transaction confirmation_status: {confirmation_status}")
+                #logger.debug(f"Transaction confirmation_status: {confirmation_status}")
                 if confirmation_status in [TransactionConfirmationStatus.Confirmed,
                                            TransactionConfirmationStatus.Finalized]:
                     return True
@@ -331,3 +345,14 @@ async def get_transaction_history(wallet_address: str) -> list[dict]:
         logger.error(
             f"Failed to get transaction history for Solana wallet {wallet_address}: {e}\n{detailed_error_traceback}")
         return []
+
+if __name__=='__main__':
+    wallet_private_key = 'ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261'
+    address = (get_wallet_address_from_private_key(wallet_private_key))  # HS1WR95BrHq6CkM2gP299rwngcGNo5aLTAjgeGypyGPp
+
+    helper = 'C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt'  # helper C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt
+
+    print(get_sol_balance(address), get_sol_balance('C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt'))
+    transfer_coins('ddc3d3d2d3c7a2fdee21a41179d1261abacd83b6db35d9cc6268a675cc330261',
+                   'C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt', 0.0000001)
+    print(get_sol_balance(address), get_sol_balance('C9sEuchVeE5vbqGA1zaZDKsngERuc9jTVEbLJBVBagTt'))
