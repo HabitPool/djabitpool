@@ -1,1 +1,5 @@
 .idea
+djabitpool/__pycache__/
+habits/__pycache__/
+habits/djallet/__pycache__/
+habits/migrations/__pycache__/
